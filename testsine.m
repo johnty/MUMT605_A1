@@ -1,0 +1,25 @@
+close all;
+Fs = 100;
+T = 1;
+t1 = 1:T*Fs; %in seconds
+%y1 = sin(freq*t*2*pi/Fs);
+y1 = ones(1,length(t1));
+y1(length(y1)/2:length(y1)) = 0;
+subplot(4,1,1);
+plot(y1);
+t2 = 1:T:Fs*2;
+%y2 = sin(freq*t2*2*pi/Fs);
+y2 = [y1 y1 y1 y1];
+subplot(4,1,2);
+plot(y2);
+Y1 = fft(y1);
+Y2 = fft(y2);
+figure(2);
+subplot(4,1,1);
+plot(real(Y1));
+subplot(4,1,2);
+plot(imag(Y1));
+subplot(4,1,3);
+plot(real(Y2));
+subplot(4,1,4);
+plot(imag(Y2));

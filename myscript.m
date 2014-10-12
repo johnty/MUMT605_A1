@@ -1,0 +1,22 @@
+close all;
+A = 1.0;
+r = .5;
+freq = 1;
+N = 1000;
+T = r/(freq);
+sf = r;
+omega = linspace(-pi,(pi),N); % create array of normalized frequencies
+S_o = A*exp(-1i*N*omega/2).*sin(N*omega/2)./(N*omega/2);
+subplot(4,1,1);
+plot(real(Sk));
+subplot(4,1,2);
+plot(imag(Sk));
+%Sk = A*1i./(2*pi*k).*(exp(-1i*pi*k*T*r)+exp(1i*pi*k*T*r));
+w = ones(1, length(Sk));
+%w = sinc(k);
+w(1:length(w)/4) = 0;
+w(3*length(w)/4:length(w)) = 0;
+Sk_ = Sk.*w;
+x = ifft(Sk);
+subplot(4,1,4);
+plot(abs(x));
