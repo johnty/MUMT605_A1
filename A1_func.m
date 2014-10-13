@@ -1,17 +1,20 @@
-function [wave] = A1_func(f, ph, time, sample_rate, doPlot, doPlay)
+function [wave] = A1_func(f, d_cycle, ph, time, sample_rate, doPlot)
 close all;
 
-%TODO: what if we want target freq of 0? make sure can handle
+
 F_gen = f;
 Fs = sample_rate;
 phase = ph;
 Dur = time;
+r = d_cycle;
+% handle the case where we input 0 frequency
+if (F_gen == 0)
+    wave = zeros(1,Fs*Dur);
+    return;
+end
 
-make_plots = 1;
-%display settings
-screen_size = get(0, 'screensize');
-A = 1.0;
-r = 0.5;
+screen_size = get(0, 'screensize'); %for plots
+A = 1.0; %assume max amplitude
 freq = 1;
 N = 500;
 T = r/(freq);
@@ -20,6 +23,10 @@ f = linspace(-N/2,N/2,N);
 Sk = N*A*exp(-1i*pi.*f*T).*sin(pi*f*T)./(pi*f);
 
 w = ones(1, length(Sk));
+
+%played around with windowing the spectrum
+% to reduce higher frequencies - didn't
+% seem to be necessary...
 %w = sinc(k);
 %w(1:length(w)/4) = 0;
 %w(3*length(w)/4:length(w)) = 0;
@@ -32,7 +39,6 @@ x_wt = abs(x); %the generated "wave table", as first part of question
 % 2.) phase (relative as a portion of period)
 % 3.) total wave duration
 % 4.) (implictly required:) Sample Rate of playback
-
 
 % we want to generate a wave of freq F_gen, at playback rate Fs
 % Np is the period of the wave necessary in number of samples:
@@ -61,10 +67,10 @@ x_wave_out = 0;
 for k=1:num_copies
     x_wave_out= [x_wave_out wt_with_phase]; % number of "complete" chunks
 end
-length(x_wave_out)
+before_len = length(x_wave_out)
 % add remainder (if any) of final chunk to fill exact number of samples
 % dictated by total Duration and Sample Rate:
-extra = mod(Dur*Fs, floor(Np))
+extra = mod(Dur*Fs, Np)
 if (extra ~= 0) % add final bit to end...
     x_wave_out = [x_wave_out wt_with_phase(1:extra-1)];
 end
@@ -108,8 +114,3 @@ if (doPlot == 1)
 end
 
 wave = x_wave_out;
-%see if we should play it
-if (doPlay == 1)
-    p = audioplayer(wave, Fs);
-    p.play();
-end
