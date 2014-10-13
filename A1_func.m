@@ -1,6 +1,5 @@
 function [wave] = A1_func(f, d_cycle, ph, time, sample_rate, doPlot)
-close all;
-
+% A1_func generates a rectangular wave of certain
 
 F_gen = f;
 Fs = sample_rate;
@@ -40,6 +39,11 @@ x_wt = abs(x); %the generated "wave table", as first part of question
 % 3.) total wave duration
 % 4.) (implictly required:) Sample Rate of playback
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ATTEMPT ONE: this was wrong, since we 
+%% end up being limited to Fs/N output frequencies, where N is an integer
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % we want to generate a wave of freq F_gen, at playback rate Fs
 % Np is the period of the wave necessary in number of samples:
 Np = floor(Fs/F_gen);
@@ -61,7 +65,6 @@ else
     wt_with_phase = x_freq_correct;
 end
 
-
 num_copies = floor(Dur*Fs/Np);
 x_wave_out = 0;
 for k=1:num_copies
@@ -74,9 +77,27 @@ extra = mod(Dur*Fs, Np)
 if (extra ~= 0) % add final bit to end...
     x_wave_out = [x_wave_out wt_with_phase(1:extra-1)];
 end
-expected_len = Dur*Fs
-actual_len = length(x_wave_out)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% END ATTEMPT ONE: this was wrong
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% ATTEMPT TWO: realized we have to scan through
+%% wavetable at a changing, *continuous* rate
+%% in order to generate any frequency (not just Fs/N ones)
+
+num_samples = Dur*Fs; % total number of samples to generate
+freq_orig = Fs/N; % the "native" frequency of original wavetable
+freq_ratio = F_gen/freq_orig; %rate at which we need to go through table
+offset = N*phase; %phase offset
+wave_out2 = zeros(1,num_samples);
+for k=1:num_samples
+    
+    % we read through original wavetable, at rate given
+    % by freq_ratio so the output frequency is EXACTLY 
+    % the target frequency
+    wave_out2(k) = x_wt(mod(round(k*freq_ratio+offset),N)+1);
+    %curr_phase= curr_phase+freq_ratio*dt;
+end
 
 %plots
 
@@ -97,20 +118,18 @@ if (doPlot == 1)
     title('ifft of spectrum');
     %FIGURE 2: Wavetable
     figure('Position', [screen_size(3)/2 screen_size(4)/2-100 screen_size(3)/2 screen_size(4)/2]);
-    subplot(3,1,1);
+    subplot(2,1,1);
     plot(x_wt);
     title('generated wavetable from spectrum');
-    subplot(3,1,2);
-    plot(x_freq_correct);
-    title('generated wavetable with correct frequency for given Fs');   
-    subplot(3,1,3);
-    plot(wt_with_phase);
-    title('generated wavetable with phase shift');
+    subplot(2,1,2);
+    plot(wave_out2(1:Fs/F_gen));
+    title('(roughly) one cycle of freq+phase corrected output waveform');   
     %FIGURE 3: Output Samples
     figure('Position', [25 125 screen_size(3) screen_size(4)/2]);
     title_str = ['Plot of ' num2str(Dur) 's at ' num2str(Fs) ' sample rate'];
-    plot(x_wave_out);
+    plot(wave_out2);
     title(title_str);
 end
 
-wave = x_wave_out;
+%wave = x_wave_out;
+wave = wave_out2;
