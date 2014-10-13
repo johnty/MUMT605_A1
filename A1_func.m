@@ -1,5 +1,13 @@
 function [wave] = A1_func(f, d_cycle, ph, time, sample_rate, doPlot)
-% A1_func generates a rectangular wave of certain
+% A1_func generates a rectangular wave with specified parameters
+% W = A1_func(f, d_cycle, ph, time, sample_rate, doPlot)
+%   - f frequency in hertz
+%   - d_cycle duty cycle of wave (0.0 - 1.0)
+%   - ph phase offset (as portion of period, 0.0 - 1.0)
+%   - time duration of output wave in seconds
+%   - sample_rate output sample rate
+%   - doPlot 1=plot spectrum, wave, etc 0 = no plot
+%   - W the output samples
 
 F_gen = f;
 Fs = sample_rate;
@@ -8,7 +16,7 @@ Dur = time;
 r = d_cycle;
 % handle the case where we input 0 frequency
 if (F_gen == 0)
-    wave = zeros(1,Fs*Dur);
+    wave = zeros(1,floor(Fs*Dur));
     return;
 end
 
@@ -70,13 +78,7 @@ x_wave_out = 0;
 for k=1:num_copies
     x_wave_out= [x_wave_out wt_with_phase]; % number of "complete" chunks
 end
-before_len = length(x_wave_out)
-% add remainder (if any) of final chunk to fill exact number of samples
-% dictated by total Duration and Sample Rate:
-extra = mod(Dur*Fs, Np)
-if (extra ~= 0) % add final bit to end...
-    x_wave_out = [x_wave_out wt_with_phase(1:extra-1)];
-end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% END ATTEMPT ONE: this was wrong
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -85,7 +87,7 @@ end
 %% wavetable at a changing, *continuous* rate
 %% in order to generate any frequency (not just Fs/N ones)
 
-num_samples = Dur*Fs; % total number of samples to generate
+num_samples = floor(Dur*Fs); % total number of samples to generate
 freq_orig = Fs/N; % the "native" frequency of original wavetable
 freq_ratio = F_gen/freq_orig; %rate at which we need to go through table
 offset = N*phase; %phase offset
@@ -99,7 +101,6 @@ for k=1:num_samples
     % location in wavetable - > a more thorough implementation should
     % try to do some interpolation in the wavetable
     wave_out2(k) = x_wt(mod(round(k*freq_ratio+offset),N)+1);
-    %curr_phase= curr_phase+freq_ratio*dt;
 end
 
 %plots
@@ -125,7 +126,7 @@ if (doPlot == 1)
     plot(x_wt);
     title('generated wavetable from spectrum');
     subplot(2,1,2);
-    plot(wave_out2(1:Fs/F_gen));
+    plot(wave_out2(1:floor(Fs/F_gen)));
     title('(roughly) one cycle of freq+phase corrected output waveform');   
     %FIGURE 3: Output Samples
     figure('Position', [25 125 screen_size(3) screen_size(4)/2]);
