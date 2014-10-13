@@ -95,6 +95,9 @@ for k=1:num_samples
     % we read through original wavetable, at rate given
     % by freq_ratio so the output frequency is EXACTLY 
     % the target frequency
+    % a bit lazy here and we're simply reading the nearest
+    % location in wavetable - > a more thorough implementation should
+    % try to do some interpolation in the wavetable
     wave_out2(k) = x_wt(mod(round(k*freq_ratio+offset),N)+1);
     %curr_phase= curr_phase+freq_ratio*dt;
 end
